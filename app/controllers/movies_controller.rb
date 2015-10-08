@@ -3,7 +3,7 @@ class MoviesController < ApplicationController
   # See Section 4.5: Strong Parameters below for an explanation of this method:
   # http://guides.rubyonrails.org/action_controller_overview.html
   def movie_params
-    params.require(:movie).permit(:title, :rating, :description, :release_date)
+    params.require(:movie).permit(:title, :rating, :description, :release_date, :order)
   end
 
   def show
@@ -12,8 +12,26 @@ class MoviesController < ApplicationController
     # will render app/views/movies/show.<extension> by default
   end
 
+
+  def sortTitle
+      
+  end
+
+
   def index
     @movies = Movie.all
+    
+    if (params[:order] == "title")
+        @movies = @movies.order(:title) 
+        @title_hilight = "hilite"
+    end
+    
+ 
+  if(params[:order] == "date")
+      @movies = @movies.order(:release_date)
+      @release_date_hilight = "hilite"
+  end
+    
   end
 
   def new
