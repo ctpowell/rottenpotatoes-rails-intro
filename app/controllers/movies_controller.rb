@@ -12,11 +12,14 @@ class MoviesController < ApplicationController
     # will render app/views/movies/show.<extension> by default
   end
 
-
-  def sortTitle
-      
+  def ratings_used
+    
+ 
+    @all_ratings = @movies.rating.uniq {|x| x.user_id}
+  
+    return @all_ratings
+  
   end
-
 
   def index
     @movies = Movie.all
