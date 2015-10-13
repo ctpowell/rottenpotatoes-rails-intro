@@ -3,7 +3,7 @@ class MoviesController < ApplicationController
   # See Section 4.5: Strong Parameters below for an explanation of this method:
   # http://guides.rubyonrails.org/action_controller_overview.html
   def movie_params
-    params.require(:movie).permit(:title, :rating, :description, :release_date, :order)
+    params.require(:movie).permit(:title, :rating, :description, :release_date, :order, :sort_by)
   end
 
   def show
@@ -12,29 +12,29 @@ class MoviesController < ApplicationController
     # will render app/views/movies/show.<extension> by default
   end
 
-  def ratings_used
-    
- 
-    @all_ratings = @movies.rating.uniq {|x| x.user_id}
-  
-    return @all_ratings
-  
-  end
-
   def index
-    @movies = Movie.all
-    
-    if (params[:order] == "title")
-        @movies = @movies.order(:title) 
-        @title_hilight = "hilite"
+    @all_ratings = Movie.pluck(:rating).uniq
+
+    session[:ratings] ||= @all_ratings        
+
+    if params.has_key? 'ratings_submit' and !params.has_key? 'ratings' 
+      params['ratings'] = @all_ratings
     end
+
+    if params.has_key? 'ratings'  
+      session[:ratings] = params[:ratings]
+    end
+
+    @movies = Movie.where(:rating => session[:ratings])
+    session[:sort_by] ||= 'title'                
     
- 
-  if(params[:order] == "date")
-      @movies = @movies.order(:release_date)
-      @release_date_hilight = "hilite"
-  end
-    
+    if params.has_key? :sort_by
+      session[:sort_by] = params[:sort_by]
+    end
+
+    @movies = @movies.order(session[:sort_by])
+
+    instance_variable_set("@#{session[:sort_by]}_header", "hilite")
   end
 
   def new
@@ -64,7 +64,12 @@ class MoviesController < ApplicationController
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
   end
-
+  
+  def search_tmdb
+    flash[:warning] = "'#[params[:search_terms]}' was not found in TMDb."
+    redirect_to movies_path
+  end
+  
   private :movie_params
   
 end
